@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,23 +9,29 @@ import { CurrencyProvider } from "./contexts/CurrencyContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+// Create a wrapper component to properly handle QueryClient initialization
+const AppContent = () => {
+  // Create QueryClient inside the component function
+  const [queryClient] = React.useState(() => new QueryClient());
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <CurrencyProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner position="top-center" />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </CurrencyProvider>
-  </QueryClientProvider>
-);
+  return (
+    <QueryClientProvider client={queryClient}>
+      <CurrencyProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner position="top-center" />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </CurrencyProvider>
+    </QueryClientProvider>
+  );
+};
+
+const App = () => <AppContent />;
 
 export default App;
