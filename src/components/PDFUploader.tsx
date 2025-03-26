@@ -1,8 +1,10 @@
 
 import React, { useState, useCallback, useRef } from 'react';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { analyzeTransactions } from '@/utils/openaiService';
 
 interface PDFUploaderProps {
   onUploadSuccess: (data: any) => void;
@@ -13,6 +15,8 @@ interface PDFUploaderProps {
 const PDFUploader: React.FC<PDFUploaderProps> = ({ onUploadSuccess, isLoading, setIsLoading }) => {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [apiKey, setApiKey] = useState('');
+  const [showApiInput, setShowApiInput] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -54,37 +58,59 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onUploadSuccess, isLoading, s
 
   const handleUpload = useCallback(async () => {
     if (selectedFile) {
+      if (!apiKey && !showApiInput) {
+        setShowApiInput(true);
+        return;
+      }
+      
+      if (showApiInput && !apiKey) {
+        toast.error('Please enter your OpenAI API key to analyze the statement.');
+        return;
+      }
+      
       setIsLoading(true);
       
       // In a real application, we would send the file to the server for processing
       // For this demo, we'll simulate processing with a timeout
-      setTimeout(() => {
-        // Mock data to simulate bank statement parsing result
-        const mockData = {
-          transactions: [
-            { id: 1, date: '2023-07-01', description: 'Grocery Store', amount: -85.43, category: 'Groceries' },
-            { id: 2, date: '2023-07-03', description: 'Coffee Shop', amount: -4.50, category: 'Food & Dining' },
-            { id: 3, date: '2023-07-05', description: 'Gas Station', amount: -45.00, category: 'Transportation' },
-            { id: 4, date: '2023-07-07', description: 'Online Retailer', amount: -65.99, category: 'Shopping' },
-            { id: 5, date: '2023-07-10', description: 'Pharmacy', amount: -12.99, category: 'Health' },
-            { id: 6, date: '2023-07-12', description: 'Salary', amount: 2500.00, category: 'Income' },
-            { id: 7, date: '2023-07-15', description: 'Restaurant', amount: -78.35, category: 'Food & Dining' },
-            { id: 8, date: '2023-07-18', description: 'Utility Bill', amount: -95.40, category: 'Bills & Utilities' },
-            { id: 9, date: '2023-07-20', description: 'Streaming Service', amount: -14.99, category: 'Entertainment' },
-            { id: 10, date: '2023-07-22', description: 'Mobile Phone', amount: -65.00, category: 'Bills & Utilities' },
-            { id: 11, date: '2023-07-25', description: 'Public Transit', amount: -25.00, category: 'Transportation' },
-            { id: 12, date: '2023-07-28', description: 'Gym Membership', amount: -49.99, category: 'Health & Fitness' }
-          ]
-        };
-        
-        toast.success('Statement processed successfully!');
-        onUploadSuccess(mockData);
-        setIsLoading(false);
+      setTimeout(async () => {
+        try {
+          // Mock data to simulate bank statement parsing result
+          const mockData = {
+            transactions: [
+              { id: 1, date: '2023-07-01', description: 'Grocery Store', amount: -85.43, category: 'Groceries' },
+              { id: 2, date: '2023-07-03', description: 'Coffee Shop', amount: -4.50, category: 'Food & Dining' },
+              { id: 3, date: '2023-07-05', description: 'Gas Station', amount: -45.00, category: 'Transportation' },
+              { id: 4, date: '2023-07-07', description: 'Online Retailer', amount: -65.99, category: 'Shopping' },
+              { id: 5, date: '2023-07-10', description: 'Pharmacy', amount: -12.99, category: 'Health' },
+              { id: 6, date: '2023-07-12', description: 'Salary', amount: 2500.00, category: 'Income' },
+              { id: 7, date: '2023-07-15', description: 'Restaurant', amount: -78.35, category: 'Food & Dining' },
+              { id: 8, date: '2023-07-18', description: 'Utility Bill', amount: -95.40, category: 'Bills & Utilities' },
+              { id: 9, date: '2023-07-20', description: 'Streaming Service', amount: -14.99, category: 'Entertainment' },
+              { id: 10, date: '2023-07-22', description: 'Mobile Phone', amount: -65.00, category: 'Bills & Utilities' },
+              { id: 11, date: '2023-07-25', description: 'Public Transit', amount: -25.00, category: 'Transportation' },
+              { id: 12, date: '2023-07-28', description: 'Gym Membership', amount: -49.99, category: 'Health & Fitness' }
+            ]
+          };
+          
+          if (apiKey) {
+            // Analyze the transactions with OpenAI
+            const analysis = await analyzeTransactions(mockData.transactions, apiKey);
+            mockData.analysis = analysis;
+          }
+          
+          toast.success('Statement processed successfully!');
+          onUploadSuccess(mockData);
+        } catch (error) {
+          console.error('Error processing transactions:', error);
+          toast.error('Error processing your statement');
+        } finally {
+          setIsLoading(false);
+        }
       }, 2000);
     } else {
       toast.error('Please select a file to upload.');
     }
-  }, [selectedFile, onUploadSuccess, setIsLoading]);
+  }, [selectedFile, onUploadSuccess, setIsLoading, apiKey, showApiInput]);
 
   const openFileSelector = () => {
     if (fileInputRef.current) {
@@ -114,7 +140,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onUploadSuccess, isLoading, s
             <h3 className="text-lg font-medium mb-2">Upload Your Bank Statement</h3>
             
             <p className="text-sm text-muted-foreground mb-6 max-w-md">
-              Drag and drop your PDF bank statement, or click to browse. We'll analyze it and provide personalized insights.
+              Drag and drop your PDF bank statement, or click to browse. We'll analyze it with AI and provide personalized insights.
             </p>
             
             <input
@@ -124,6 +150,21 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onUploadSuccess, isLoading, s
               accept="application/pdf"
               onChange={handleChange}
             />
+            
+            {showApiInput && (
+              <div className="w-full mb-4">
+                <Input
+                  type="password"
+                  placeholder="Enter your OpenAI API key"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="mb-2"
+                />
+                <p className="text-xs text-muted-foreground mb-4">
+                  Your API key is used only for this analysis and is not stored.
+                </p>
+              </div>
+            )}
             
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
@@ -147,7 +188,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onUploadSuccess, isLoading, s
                     </svg>
                     Processing...
                   </div>
-                ) : 'Analyze Statement'}
+                ) : showApiInput ? 'Analyze with AI' : 'Analyze Statement'}
               </Button>
             </div>
             

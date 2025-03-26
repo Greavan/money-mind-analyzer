@@ -1,7 +1,8 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowDown, AlertCircle, Lightbulb, TrendingUp } from 'lucide-react';
+import { ArrowDown, AlertCircle, Lightbulb, TrendingUp, Brain } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface Transaction {
@@ -12,20 +13,44 @@ interface Transaction {
   category: string;
 }
 
-interface InsightProps {
-  transactions: Transaction[];
+interface AIAnalysis {
+  insights: string[];
+  topSpendingCategory: string;
+  savingsOpportunities: {
+    amount: number;
+    description: string;
+  }[];
+  budgetRecommendations: string[];
 }
 
-const Insights: React.FC<InsightProps> = ({ transactions }) => {
+interface InsightProps {
+  transactions: Transaction[];
+  analysis?: AIAnalysis;
+}
+
+const Insights: React.FC<InsightProps> = ({ transactions, analysis }) => {
   const [insights, setInsights] = useState<string[]>([]);
   const [topSpendingCategory, setTopSpendingCategory] = useState<string>('');
   const [savingsOpportunity, setSavingsOpportunity] = useState<number>(0);
+  const [budgetRecommendations, setBudgetRecommendations] = useState<string[]>([]);
   const { formatCurrency } = useCurrency();
   
   useEffect(() => {
+    if (analysis) {
+      // Use AI-generated insights if available
+      setInsights(analysis.insights || []);
+      setTopSpendingCategory(analysis.topSpendingCategory || '');
+      setBudgetRecommendations(analysis.budgetRecommendations || []);
+      
+      // Calculate total savings opportunities
+      const totalSavings = analysis.savingsOpportunities?.reduce((total, opp) => total + opp.amount, 0) || 0;
+      setSavingsOpportunity(totalSavings);
+      return;
+    }
+    
     if (transactions.length === 0) return;
     
-    // Generate insights based on transaction data
+    // Generate insights based on transaction data as fallback
     const newInsights: string[] = [];
     
     // Filter out income transactions (positive amounts)
@@ -93,14 +118,28 @@ const Insights: React.FC<InsightProps> = ({ transactions }) => {
     newInsights.push("Consider setting up automatic transfers to a savings account on payday to build your emergency fund.");
     
     setInsights(newInsights);
-  }, [transactions, formatCurrency]);
+    setBudgetRecommendations([
+      "Try to limit dining out to once per week",
+      "Consider canceling unused subscriptions",
+      "Create a dedicated savings account for emergencies"
+    ]);
+  }, [transactions, formatCurrency, analysis]);
   
   return (
     <Card className="w-full animate-fade-in">
       <CardHeader>
         <CardTitle className="flex items-center">
-          <Lightbulb className="w-5 h-5 mr-2 text-primary" />
-          Financial Insights & Recommendations
+          {analysis ? (
+            <>
+              <Brain className="w-5 h-5 mr-2 text-primary" />
+              AI Financial Analysis
+            </>
+          ) : (
+            <>
+              <Lightbulb className="w-5 h-5 mr-2 text-primary" />
+              Financial Insights & Recommendations
+            </>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -130,7 +169,9 @@ const Insights: React.FC<InsightProps> = ({ transactions }) => {
                 </div>
                 <h3 className="text-lg font-medium">Save {formatCurrency(savingsOpportunity)}</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  By reducing small food purchases, you could save this amount monthly.
+                  {analysis?.savingsOpportunities?.length > 0 
+                    ? analysis.savingsOpportunities[0].description
+                    : "By reducing small, frequent purchases, you could save this amount monthly."}
                 </p>
               </div>
             )}
@@ -138,7 +179,7 @@ const Insights: React.FC<InsightProps> = ({ transactions }) => {
             <div className="pt-2">
               <h3 className="font-medium mb-3 flex items-center">
                 <TrendingUp className="w-4 h-4 mr-2 text-primary" />
-                Recommendations
+                Key Insights
               </h3>
               <ul className="space-y-3">
                 {insights.map((insight, index) => (
@@ -151,6 +192,25 @@ const Insights: React.FC<InsightProps> = ({ transactions }) => {
                 ))}
               </ul>
             </div>
+
+            {budgetRecommendations.length > 0 && (
+              <div className="pt-2">
+                <h3 className="font-medium mb-3 flex items-center">
+                  <Lightbulb className="w-4 h-4 mr-2 text-primary" />
+                  Budget Recommendations
+                </h3>
+                <ul className="space-y-3">
+                  {budgetRecommendations.map((recommendation, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="h-6 w-6 rounded-full bg-green-100 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                        <span className="text-xs font-medium text-green-800">{index + 1}</span>
+                      </span>
+                      <p className="text-sm">{recommendation}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex items-center justify-center py-6 text-muted-foreground">

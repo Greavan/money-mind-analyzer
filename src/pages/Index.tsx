@@ -8,7 +8,7 @@ import SpendingChart from '@/components/SpendingChart';
 import Insights from '@/components/Insights';
 import CurrencySelector from '@/components/CurrencySelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 import classifier from '@/lib/ml-model';
 
 interface Transaction {
@@ -19,8 +19,19 @@ interface Transaction {
   category: string;
 }
 
+interface AIAnalysis {
+  insights: string[];
+  topSpendingCategory: string;
+  savingsOpportunities: {
+    amount: number;
+    description: string;
+  }[];
+  budgetRecommendations: string[];
+}
+
 const Index = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [analysis, setAnalysis] = useState<AIAnalysis | undefined>(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [dataLoaded, setDataLoaded] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -44,6 +55,14 @@ const Index = () => {
       // In a real app, data would come from PDF parsing
       const processedTransactions = await classifier.categorizeTransactions(data.transactions);
       setTransactions(processedTransactions);
+      
+      // Set AI analysis if available
+      if (data.analysis) {
+        setAnalysis(data.analysis);
+      } else {
+        setAnalysis(undefined);
+      }
+      
       setDataLoaded(true);
       
       // Show success message with transaction count
@@ -64,7 +83,7 @@ const Index = () => {
           {!dataLoaded ? (
             <div className="py-12">
               <div className="mb-8 text-center animate-fade-in">
-                <h1 className="text-4xl font-bold tracking-tight mb-3">Financial Statement Analyzer</h1>
+                <h1 className="text-4xl font-bold tracking-tight mb-3">AI Financial Statement Analyzer</h1>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                   Upload your bank statement and let our AI analyze your spending patterns, categorize transactions, and provide personalized financial insights.
                 </p>
@@ -98,6 +117,7 @@ const Index = () => {
                     onClick={() => {
                       setDataLoaded(false);
                       setTransactions([]);
+                      setAnalysis(undefined);
                     }}
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
@@ -108,7 +128,7 @@ const Index = () => {
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <SpendingChart transactions={transactions} selectedCategory={selectedCategory} />
-                <Insights transactions={transactions} />
+                <Insights transactions={transactions} analysis={analysis} />
               </div>
               
               <Tabs defaultValue="all" className="w-full">
