@@ -116,9 +116,14 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onUploadSuccess, isLoading, s
           };
           
           if (apiKey) {
-            // Analyze the transactions with OpenAI
-            const analysis = await analyzeTransactions(mockData.transactions, apiKey);
-            mockData.analysis = analysis;
+            try {
+              // Analyze the transactions with OpenAI
+              const analysis = await analyzeTransactions(mockData.transactions, apiKey);
+              mockData.analysis = analysis;
+            } catch (error) {
+              console.error('Error analyzing transactions with OpenAI:', error);
+              toast.error('Could not analyze transactions with AI. Basic data still available.');
+            }
           }
           
           toast.success('Statement processed successfully!');
