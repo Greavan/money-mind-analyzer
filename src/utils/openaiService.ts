@@ -108,7 +108,7 @@ export async function analyzeTransactions(
         : "Failed to analyze transactions"
     );
     
-    // Return a default analysis
+    // Return a default analysis to prevent runtime errors
     return {
       insights: ["Could not generate insights due to an error."],
       topSpendingCategory: "",

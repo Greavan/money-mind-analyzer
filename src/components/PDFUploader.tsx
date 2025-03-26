@@ -21,18 +21,21 @@ interface Transaction {
   category: string;
 }
 
+// Define the analysis type
+interface Analysis {
+  insights: string[];
+  topSpendingCategory: string;
+  savingsOpportunities: {
+    amount: number;
+    description: string;
+  }[];
+  budgetRecommendations: string[];
+}
+
 // Define the mock data type that matches what we're passing to onUploadSuccess
 interface ProcessedData {
   transactions: Transaction[];
-  analysis?: {
-    insights: string[];
-    topSpendingCategory: string;
-    savingsOpportunities: {
-      amount: number;
-      description: string;
-    }[];
-    budgetRecommendations: string[];
-  };
+  analysis?: Analysis;
 }
 
 const PDFUploader: React.FC<PDFUploaderProps> = ({ onUploadSuccess, isLoading, setIsLoading }) => {
