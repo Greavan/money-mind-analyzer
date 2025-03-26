@@ -12,6 +12,29 @@ interface PDFUploaderProps {
   setIsLoading: (loading: boolean) => void;
 }
 
+// Define the proper transaction type
+interface Transaction {
+  id: number;
+  date: string;
+  description: string;
+  amount: number;
+  category: string;
+}
+
+// Define the mock data type that matches what we're passing to onUploadSuccess
+interface ProcessedData {
+  transactions: Transaction[];
+  analysis?: {
+    insights: string[];
+    topSpendingCategory: string;
+    savingsOpportunities: {
+      amount: number;
+      description: string;
+    }[];
+    budgetRecommendations: string[];
+  };
+}
+
 const PDFUploader: React.FC<PDFUploaderProps> = ({ onUploadSuccess, isLoading, setIsLoading }) => {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -75,7 +98,7 @@ const PDFUploader: React.FC<PDFUploaderProps> = ({ onUploadSuccess, isLoading, s
       setTimeout(async () => {
         try {
           // Mock data to simulate bank statement parsing result
-          const mockData = {
+          const mockData: ProcessedData = {
             transactions: [
               { id: 1, date: '2023-07-01', description: 'Grocery Store', amount: -85.43, category: 'Groceries' },
               { id: 2, date: '2023-07-03', description: 'Coffee Shop', amount: -4.50, category: 'Food & Dining' },
