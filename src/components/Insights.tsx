@@ -1,8 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowDown, AlertCircle, Lightbulb, TrendingUp } from 'lucide-react';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface Transaction {
   id: number;
@@ -20,6 +20,7 @@ const Insights: React.FC<InsightProps> = ({ transactions }) => {
   const [insights, setInsights] = useState<string[]>([]);
   const [topSpendingCategory, setTopSpendingCategory] = useState<string>('');
   const [savingsOpportunity, setSavingsOpportunity] = useState<number>(0);
+  const { formatCurrency } = useCurrency();
   
   useEffect(() => {
     if (transactions.length === 0) return;
@@ -92,14 +93,7 @@ const Insights: React.FC<InsightProps> = ({ transactions }) => {
     newInsights.push("Consider setting up automatic transfers to a savings account on payday to build your emergency fund.");
     
     setInsights(newInsights);
-  }, [transactions]);
-  
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
+  }, [transactions, formatCurrency]);
   
   return (
     <Card className="w-full animate-fade-in">

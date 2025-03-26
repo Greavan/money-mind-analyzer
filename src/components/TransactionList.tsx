@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface Transaction {
   id: number;
@@ -22,6 +22,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, setSele
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>(transactions);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const { formatCurrency } = useCurrency();
   
   // Get unique categories
   const categories = [...new Set(transactions.map(t => t.category))];
@@ -55,13 +56,6 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, setSele
       setActiveFilter(category);
       setSelectedCategory(category);
     }
-  };
-  
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
   };
   
   const formatDate = (dateStr: string) => {

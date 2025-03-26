@@ -1,8 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Badge } from '@/components/ui/badge';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface Transaction {
   id: number;
@@ -32,6 +32,7 @@ const COLORS = [
 const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, selectedCategory }) => {
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [totalSpending, setTotalSpending] = useState(0);
+  const { formatCurrency, convertAmount } = useCurrency();
   
   useEffect(() => {
     // Filter out income transactions (positive amounts)
@@ -58,13 +59,6 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions, selectedCat
     
     setChartData(data);
   }, [transactions]);
-  
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
   
   const formatPercentage = (value: number) => {
     return (value * 100).toFixed(1) + '%';

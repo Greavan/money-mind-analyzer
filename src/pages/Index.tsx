@@ -6,6 +6,7 @@ import PDFUploader from '@/components/PDFUploader';
 import TransactionList from '@/components/TransactionList';
 import SpendingChart from '@/components/SpendingChart';
 import Insights from '@/components/Insights';
+import CurrencySelector from '@/components/CurrencySelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/sonner';
 import classifier from '@/lib/ml-model';
@@ -89,17 +90,20 @@ const Index = () => {
             </div>
           ) : (
             <div className="space-y-8 animate-fade-in">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <h2 className="text-2xl font-bold tracking-tight">Your Financial Analysis</h2>
-                <button 
-                  onClick={() => {
-                    setDataLoaded(false);
-                    setTransactions([]);
-                  }}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Upload Another Statement
-                </button>
+                <div className="flex items-center gap-4">
+                  <CurrencySelector />
+                  <button 
+                    onClick={() => {
+                      setDataLoaded(false);
+                      setTransactions([]);
+                    }}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Upload Another Statement
+                  </button>
+                </div>
               </div>
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
